@@ -29,6 +29,7 @@ allprojects {
         mavenCentral() // maven { url: 'http://jcenter.bintray.com' }
         maven { url releasesArtifactRepoURL }
         maven { url snapshotsArtifactRepoURL }
+        maven { url thirdpartyArtifactRepoURL }
     }
     group = 'com.liaison.seed'
 }

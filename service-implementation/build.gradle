@@ -9,10 +9,14 @@ project.war.baseName = 'hello-world'
 ext.githubProjectName = rootProject.name // Change if github project name is not the same as the root project's name
 
 buildscript {
-    repositories { mavenCentral() }
+    repositories { 
+		mavenCentral() 
+	    maven { url 'http://10.0.24.241:8000/nexus/content/repositories/thirdparty/' } // for ojdbc6.jar
+    }
     apply from: file('../gradle/buildscript.gradle'), to: buildscript
     dependencies {
         classpath 'org.gradle.api.plugins:gradle-cargo-plugin:0.6'
+		classpath 'org.apache.geronimo.specs:geronimo-jms_1.1_spec:1.1.1' 	// override javax.jms
     }
 
 }
@@ -32,6 +36,14 @@ allprojects {
 	
 	    }
 		
+	}
+}
+
+configurations {
+	
+	//Need for enhancering via datanucleus.
+	jdo {
+		extendsFrom compile
 	}
 }
 
@@ -68,6 +80,23 @@ war {
 }
 
 dependencies {
+
+	// DataNucleus
+	compile 'org.datanucleus:datanucleus-api-jdo:3.2.1@jar'
+	compile 'org.datanucleus:datanucleus-api-jpa:3.2.1@jar'
+	compile 'org.datanucleus:datanucleus-core:3.2.2@jar'
+	compile 'org.datanucleus:datanucleus-rdbms:3.2.1@jar'
+
+	// geronimo jpa spec
+	compile 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.1'
+
+	// JAX JDO API
+	compile "javax.jdo:jdo-api:3.0"
+
+	// Oracle OJDBC
+	compile 'com.oracle:ojdbc6:11g-11.2.0.3.0'
+	compile 'com.oracle:ucp:11g-11.2.0.3.0'
+	
 
 	compile 'com.netflix.eureka:eureka-client:1.1.97'
 
@@ -137,6 +166,32 @@ cargo {
         logger.info "$jvmArgs"
     }
 }
+
+// copies META-INF (including persistence.xml) to classes/main
+task copyResources(type: Copy) {
+	from "$projectDir/src/main/webapp/"
+	into "$buildDir/classes/main"
+}
+
+// JPA (datanucleus) bytecode enhancement
+task enhance (dependsOn: copyResources) << {
+	logger.info("... Enhancing ...");
+	ant.taskdef(
+		name      : 'datanucleusenhancer',
+		classpath : project.runtimeClasspath.asPath,
+		classname : 'org.datanucleus.enhancer.EnhancerTask'
+	)
+
+	ant.datanucleusenhancer(
+		classpath   : project.runtimeClasspath.asPath,
+		verbose     : true,
+		api : "JPA",
+		persistenceUnit : "Hello",
+		failonerror : true) {
+			fileset( dir : "$buildDir/classes/main" ) {	}
+		}
+}
+classes.dependsOn('enhance')
 
 // set properties before starting Jetty (via jettyRun or jettyRunWar)
 task jettyRunSetProperties {

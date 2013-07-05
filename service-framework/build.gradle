@@ -16,6 +16,13 @@ apply from: file('../gradle/check.gradle')
 apply from: file('../gradle/license.gradle')
 
 dependencies {
+	// JPA2.0 API
+	compile 'org.apache.geronimo.specs:geronimo-jpa_2.0_spec:1.1'
+	
+	// Oracle OJDBC
+	compile 'com.oracle:ojdbc6:11g-11.2.0.3.0'
+	compile 'com.oracle:ucp:11g-11.2.0.3.0'
+	
 	def log4j2Version = '2.0-beta7';
 	compile "org.apache.logging.log4j:log4j-api:$log4j2Version"
 	compile "org.apache.logging.log4j:log4j-core:$log4j2Version"
