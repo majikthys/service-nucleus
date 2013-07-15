@@ -103,3 +103,11 @@ git merge service-nucleus/master
 <i>Note that similarly, when developing on this project, a remote tracking branch should be setup against NetFlix/karyon.</i>
 
 
+## JMX Information
+Jetty JMX is configured in service-implementation/src/main/java/resources/jetty-config.xml which is loaded via the jettyRun & jettyRunWar gradle targets as specified in the gradle.build.
+ 
+Invocation:
+:  gradle  jettyRunWar -i -Dcom.sun.management.jmxremote.port=9999 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Djava.rmi.server.hostname=air.local -Dcom.sun.management.jmxremote
+Remote Address:
+: service:jmx:rmi://localhost:2100/jndi/rmi://localhost:2099/jmxrmi
+

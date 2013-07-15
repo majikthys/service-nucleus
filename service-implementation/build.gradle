@@ -11,7 +11,7 @@ ext.githubProjectName = rootProject.name // Change if github project name is not
 buildscript {
     repositories { 
 		mavenCentral() 
-	    maven { url 'http://10.0.24.241:8000/nexus/content/repositories/thirdparty/' } // for ojdbc6.jar
+//	    maven { url 'http://10.0.24.241:8000/nexus/content/repositories/thirdparty/' } // for ojdbc6.jar
     }
     apply from: file('../gradle/buildscript.gradle'), to: buildscript
     dependencies {
@@ -93,15 +93,10 @@ dependencies {
 	// JAX JDO API
 	compile "javax.jdo:jdo-api:3.0"
 
-	// Oracle OJDBC
-	compile 'com.oracle:ojdbc6:11g-11.2.0.3.0'
-	compile 'com.oracle:ucp:11g-11.2.0.3.0'
-	
 
 	compile 'com.netflix.eureka:eureka-client:1.1.97'
 
 	compile 'org.slf4j:slf4j-api:1.7.5'
-	//compile 'org.slf4j:slf4j-log4j12:1.7.5'
 	
 	def log4j2Version = '2.0-beta7';
 	compile "org.apache.logging.log4j:log4j-api:$log4j2Version"
@@ -118,6 +113,16 @@ dependencies {
     cargo "org.codehaus.cargo:cargo-core-uberjar:$cargoVersion",
             "org.codehaus.cargo:cargo-ant:$cargoVersion"
     // ************************************* end cargo *********************************************
+			
+	compile "org.apache.commons:commons-lang3:3.0"
+
+		        
+    testCompile 'org.hamcrest:hamcrest-all:1.3'
+    testCompile 'org.testng:testng:6.8'
+        
+
+			
+			
 }
 
 // Cargo is a thin wrapper that allows you to manipulate Java EE containers in a standard way.
@@ -125,52 +130,52 @@ dependencies {
 cargo {
     containerId = 'tomcat7x'
     port = new Integer(tomcatHttpPort)
-    
-    deployable{
-        // NOTE: Override file to make it pick up an existing war instead of that produce by running other tasks
-        //        file = file('target/contivo-conversion-service-0.0.1.war')
-        context = project.war.baseName
-
-        // wait on this URL before continuing
-        def pingURL = "http://localhost:${tomcatHttpPort}/${project.war.baseName}/v1/hello/to/world"
-    }
-
-    local {
-        // NOTE: uncomment following line to use existing tomcat install
-        // homeDir = file('/Library/Tomcat')    // TODO should be set from CATALINA_HOME
-        // output = file('build/tomcat-out.log')
-
-        // TODO INSTALL OUTSIDE OF BUILDDIR... SO CLEAN DOESN'T KILL TOMCAT INSTALL UNLESS EXPLICITLY TOLD TO DO SO.
-        installer {
-            installUrl = "http://apache.osuosl.org/tomcat/tomcat-7/v${tomcatVersion}/bin/apache-tomcat-${tomcatVersion}.zip"
-            downloadDir = file("$buildDir/download") 
-            extractDir = file("$buildDir/extract")
-        }
-
-       tomcat {
-            ajpPort = new Integer(tomcatAjpPort)
-        }
-
-        if(containerJVMArgs) {
-            jvmArgs = "$containerJVMArgs"        
-        } else {
-            jvmArgs = "-Darchaius.deployment.applicationId=${project.war.baseName} -Darchaius.deployment.environment=dev"
-        }
-           
-        // if containerDebug, append tomcat debug args to jvm args
-        if(containerDebug) {
-            jvmArgs += " $containerDebugJVMArgs"
-        }
-        
-        logger.info "=====jvmArgs===="
-        logger.info "$jvmArgs"
-    }
+//    
+//    deployable{
+//        // NOTE: Override file to make it pick up an existing war instead of that produce by running other tasks
+//        //        file = file('target/contivo-conversion-service-0.0.1.war')
+//        context = project.war.baseName
+//
+//        // wait on this URL before continuing
+//        def pingURL = "http://localhost:${tomcatHttpPort}/${project.war.baseName}/v1/hello/to/world"
+//    }
+//
+//    local {
+//        // NOTE: uncomment following line to use existing tomcat install
+//        // homeDir = file('/Library/Tomcat')    // TODO should be set from CATALINA_HOME
+//        // output = file('build/tomcat-out.log')
+//
+//        // TODO INSTALL OUTSIDE OF BUILDDIR... SO CLEAN DOESN'T KILL TOMCAT INSTALL UNLESS EXPLICITLY TOLD TO DO SO.
+//        installer {
+//            installUrl = "http://apache.osuosl.org/tomcat/tomcat-7/v${tomcatVersion}/bin/apache-tomcat-${tomcatVersion}.zip"
+//            downloadDir = file("$buildDir/download") 
+//            extractDir = file("$buildDir/extract")
+//        }
+//
+//       tomcat {
+//            ajpPort = new Integer(tomcatAjpPort)
+//        }
+//
+//        if(containerJVMArgs) {
+//            jvmArgs = "$containerJVMArgs"        
+//        } else {
+//            jvmArgs = "-Darchaius.deployment.applicationId=${project.war.baseName} -Darchaius.deployment.environment=dev"
+//        }
+//           
+//        // if containerDebug, append tomcat debug args to jvm args
+//        if(containerDebug) {
+//            jvmArgs += " $containerDebugJVMArgs"
+//        }
+//        
+//        logger.info "=====jvmArgs===="
+//        logger.info "$jvmArgs"
+//    }
 }
 
 // copies META-INF (including persistence.xml) to classes/main
 task copyResources(type: Copy) {
 	from "$projectDir/src/main/webapp/"
-	into "$buildDir/classes/main"
+	into "$buildDir/classes/main"	
 }
 
 // JPA (datanucleus) bytecode enhancement
@@ -212,5 +217,39 @@ jettyRun {
     reload = 'automatic'
     scanIntervalSeconds = new Integer(jettyScanIntervalSeconds)
     daemon = false
+	
+	logger.warn("BLAH BLAH BLAH")
+	
+	
+//	logger.warn(sourceSets.main.runtimeClasspath)
+	
+	
 }
+
+[jettyRun, jettyRunWar]*.with {
+	reload='automatic'
+//	jettyEnvXml = file('src/test/resources/jetty-jndi.xml')
+	jettyConfig= file('src/main/resources/jetty-config.xml')
+	additionalRuntimeJars =  sourceSets.main.runtimeClasspath //TODO is something needed here?
+}
+
+test {
+//	systemProperty 'archaius.deployment.applicationId', 'default'
+//	systemProperty 'archaius.deployment.environment', 'test'
+//
+//	-Darchaius.deployment.applicationId=hello-world -Darchaius.deployment.environment=dev
+	
+	systemProperty 'archaius.deployment.applicationId', 'hello-world'
+	systemProperty 'archaius.deployment.environment', 'dev'
+
+	
+	jvmArgs "-XX:-UseSplitVerifier" //to support byte code injection
+	description = 'Just unit tests, out of container'
+
+//      include '**/TheTest.class' //example of including/running one test
+	include '**/*Test.class'
+	useTestNG ()
+}
+
+
 

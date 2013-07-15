@@ -12,7 +12,8 @@ package com.liaison.commons.util.settings;
 import java.io.IOException;
 import java.util.List;
 import org.apache.commons.configuration.AbstractConfiguration;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.netflix.config.ConcurrentCompositeConfiguration;
 import com.netflix.config.ConfigurationManager;
@@ -32,7 +33,7 @@ public class LiaisonArchaiusConfiguration extends ConcurrentCompositeConfigurati
 	public static final String IS_ENCRYPTED_SUFFIX  =".isEncrypted";
 
 	
-	protected static Logger logger = Logger.getLogger(LiaisonArchaiusConfiguration.class);
+	protected static Logger logger = LogManager.getLogger(LiaisonArchaiusConfiguration.class);
 
 	/**
 	 * 

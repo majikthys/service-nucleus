@@ -16,6 +16,7 @@
 
 package com.liaison.service;
 
+import com.liaison.commons.jpa.DAOInit;
 import com.netflix.servo.DefaultMonitorRegistry;
 import com.netflix.servo.annotations.DataSourceType;
 import com.netflix.servo.annotations.Monitor;
@@ -70,6 +71,10 @@ public class HelloworldResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public Response helloTo(@PathParam("name") String name) {
+    		DAOInit daoInit = new DAOInit();
+    		daoInit.initDataSource();// TODO should this be here?
+
+    		daoInit.initConnection(); // TODO should this be here?
         serviceCallCounter.addAndGet(1);
         JSONObject response = new JSONObject();
         try {

@@ -18,9 +18,9 @@ public abstract class PersistenceProperties {
 	public static final String DB_USER = "com.liaison.DB_USER";
 
 	//property of our db connection initialization query
-	public static final String INITIALIZATION_QUERY_PROPERTY = "liaison.initializationQuery";
+	public static final String INITIALIZATION_QUERY_PROPERTY = "com.liaison.initializationQuery";
 	
 	//jpa persistence unit name
-	public static final String PERSISTENCE_UNIT_NAME_PROPERTY = "liaison.persistenceUnitName";
+	public static final String PERSISTENCE_UNIT_NAME_PROPERTY = "com.liaison.persistenceUnitName";
 
 }

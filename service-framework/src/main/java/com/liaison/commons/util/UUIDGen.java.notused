@@ -1,0 +1,118 @@
+/*
+ * Copyright Liaison Technologies, Inc. All rights reserved.
+ *
+ * This software is the confidential and proprietary information of
+ * Liaison Technologies, Inc. ("Confidential Information").  You shall 
+ * not disclose such Confidential Information and shall use it only in
+ * accordance with the terms of the license agreement you entered into
+ * with Liaison Technologies.
+ */
+
+package com.hubspan.shared.util;
+
+import java.net.InetAddress;
+import java.security.SecureRandom;
+
+import com.hubspan.trace.AdminConsoleLog;
+/**
+ * @deprecated
+ * A Universally Unique Identifier (UUID) generator helper class
+ * @see com.hubspan.common.util.UUIDGen
+ */
+public class UUIDGen
+{
+    private static SecureRandom seeder;
+    private static String m_sPartialAddress1;
+    private static String m_sPartialAddress2;
+
+    public static void init(String strCallingSystem)
+    {
+        AdminConsoleLog oLog = new AdminConsoleLog();
+        oLog.info("UUIDGen Initialized by "+strCallingSystem+" at "+(new java.util.Date()).toString());
+
+        try
+        {
+            seeder = new SecureRandom();
+            InetAddress inetaddress = InetAddress.getLocalHost();
+            byte abyte0[] = inetaddress.getAddress();
+            String sAddress = hexFormat( getInt(abyte0) , 8);
+            m_sPartialAddress1 = sAddress.substring(0, 4);
+            m_sPartialAddress2 = sAddress.substring(4,8);
+            seeder.nextInt();
+        }
+        catch(Exception e)
+        {
+            oLog.error("UUIDGen Static block initialization by " + strCallingSystem + " failed: ", e);
+        }
+        finally
+        {
+            oLog.info("UUIDGen Static block initialization by " + strCallingSystem  + " exiting." );
+        }
+    }
+    static int getInt(byte abyte0[])
+    {
+        int i = 0;
+        int j = 24;
+        for(int k = 0; j >= 0; k++)
+        {
+            int l = abyte0[k] & 0xff;
+            i += l << j;
+            j -= 8;
+        }
+
+        return i;
+    }
+
+    static String hexFormat(int i, int j)
+    {
+        String s = Integer.toHexString(i);
+        return padHex(s, j) + s;
+    }
+
+    static String padHex(String s, int i)
+    {
+        StringBuilder stringbuffer = new StringBuilder();
+        if(s.length() < i)
+        {
+            for(int j = 0; j < i - s.length(); j++)
+                stringbuffer.append("0");
+
+        }
+        return stringbuffer.toString();
+    }
+
+
+    synchronized private int nextRandom()
+    {
+        return ( seeder.nextInt() );
+    }
+
+    private String getVal(String s)
+    {
+        long l = System.currentTimeMillis();
+        int i = (int)l & 0xffffffff;
+        int j = nextRandom();
+        return hexFormat(i, 8) + s + hexFormat(j, 8);
+    }
+
+
+    /**
+     * Returns a 32 bytes UUID string in upper case. eg. 009541A33B81101C92F3040224009C02
+     * @return String UUID string.
+     */
+    public String getUUID()
+    {
+        StringBuilder stringbuffer1 = new StringBuilder(32);
+        String s1 = hexFormat(hashCode(), 8);
+        stringbuffer1.append(m_sPartialAddress1);
+        stringbuffer1.append(s1.substring(0, 4));
+        stringbuffer1.append(m_sPartialAddress2);
+
+        stringbuffer1.append(s1.substring(4));
+        String midValueUnformated = stringbuffer1.toString();
+        nextRandom();
+        return getVal(midValueUnformated).toUpperCase();
+    }
+
+
+}

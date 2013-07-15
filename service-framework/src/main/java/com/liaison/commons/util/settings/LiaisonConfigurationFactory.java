@@ -10,6 +10,7 @@
 package com.liaison.commons.util.settings;
 
 import org.apache.commons.configuration.SystemConfiguration;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.netflix.config.AbstractPollingScheduler;
@@ -94,6 +95,10 @@ public abstract class LiaisonConfigurationFactory {
 	// Or one might use example configuration.. 
 	//	private static final DecryptableConfiguration decryptableConfiguration = new LiaisonConfigurationExample();
 	protected static Logger logger = Logger.getLogger(LiaisonConfigurationFactory.class);
+	
+	static {
+		logger.setLevel(Level.ALL);
+	}
 	   
 	/**
 	 * Gets 
