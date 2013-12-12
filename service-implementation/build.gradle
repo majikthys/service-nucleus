@@ -17,6 +17,10 @@ buildscript {
 
 }
 
+configurations {
+	swaggerDoclet 
+}
+
 allprojects {
     repositories { mavenCentral() }
 	configurations.all {
@@ -89,8 +93,56 @@ dependencies {
     cargo "org.codehaus.cargo:cargo-core-uberjar:$cargoVersion",
             "org.codehaus.cargo:cargo-ant:$cargoVersion"
     // ************************************* end cargo *********************************************
+
+	//		NOTE: 'com.hypnoticocelot:jaxrs-doclet:0.0.3-SNAPSHOT' is not kept up to date!
+    // ./lib/jaxrs-doclet-0.0.3-SNAPSHOT.jar built from http://gitlab.hs.com/g2/swagger-jaxrs-doclet
+	swaggerDoclet files ('./lib/jaxrs-doclet-0.0.3-SNAPSHOT.jar')
+	
+			
 }
 
+
+def compiledClasses = files("${buildDir}/classes/main/")
+def swaggerUIZip = "$projectDir/src/main/resources/swaggerUI.zip"
+def swaggerUIOutput = new File("$buildDir/docs/swaggerJSON")
+task swaggerUIOutputDir << {
+	swaggerUIOutput.mkdirs()
+	// do something
+}
+
+//builds swagger doclet dir... note that story around doclet isn't full baked.
+//output of this task needs to be deployed to http server to be usable.
+//It's recommended that you use "live" swagger typically located http://localhost:8989/hello-world/swagger-ui/index.html
+task buildSwaggerDoclet (description: 'Generates Static Swagger UI', group: 'Documentation') {
+	
+	logger.info("Swagger Doclet")
+	logger.info("$swaggerUIOutput")
+	logger.info("$swaggerDocletApiBasePath")
+	
+	doLast {
+		ant.javadoc(
+				//source: sourceSets.main.allJava
+				classpath: project.runtimeClasspath.asPath,
+				docletpath: (compiledClasses + configurations.swaggerDoclet).asPath,
+				destdir:"$swaggerUIOutput" ) {
+					packageset(dir:file('src/main/java'), defaultexcludes:'yes') { include(name:'com/**') }
+					doclet( name:'com.hypnoticocelot.jaxrs.doclet.ServiceDoclet')
+					{
+						//-apiVersion 1 -docBasePath /apidocs -apiBasePath /
+					param(name:'-swaggerUiZipPath', value:"$swaggerUIZip")
+						
+					 param(name:'-apiVersion', value:'1.0.0')
+// doclet only does 1.1					 param(name:'-swaggerVersion', value:'1.2')
+					 param(name:'-docBasePath', value:'')
+					 param(name:'-apiBasePath', value:"$swaggerDocletApiBasePath")
+					 param(name:'-verbose', value:true)
+					 
+					}
+				}
+	}
+}
+
+buildSwaggerDoclet.dependsOn('swaggerUIOutputDir')
 // Cargo is a thin wrapper that allows you to manipulate Java EE containers in a standard way.
 // http://cargo.codehaus.org/
 cargo {
